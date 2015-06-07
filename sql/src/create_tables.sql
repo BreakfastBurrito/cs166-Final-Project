@@ -46,3 +46,12 @@ CREATE TABLE CONNECTION_USR(
 	connectionId char(10) NOT NULL,
 	status char(30) NOT NULL,
 	PRIMARY KEY(userId,connectionId));
+
+COPY USR(
+  userId,
+  password,
+  email,
+  name,
+  dateOfBirth)
+FROM 'Final_Data.csv'
+WITH DELIMITER ',';
