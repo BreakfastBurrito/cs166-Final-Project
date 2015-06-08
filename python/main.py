@@ -11,12 +11,12 @@ def search(db_conn):
         cur.execute("SELECT NAME FROM USR WHERE NAME LIKE '%s%%' LIMIT 10" % search_name)
     except psycopg2.DatabaseError as e:
         return True
-    
+
     for row in cur.fetchall():
         print(row[0])
     print("\n")
     return True
-    
+
 def print_message(mesg):
     print("Message ID: %s" % mesg[0])
     print("Sender: %s" % mesg[1])
@@ -26,6 +26,28 @@ def print_message(mesg):
     print("Contents:")
     print(mesg[3])
     print("\n")
+
+def send_message(db_conn, sender):
+    receiver = input("Enter receiverid: ")
+    msg = input("Enter your message: ")
+
+    if user_exist(receiver):
+        print('yay')
+        #cur = db_conn.cursor()
+        #cur.execute("INSERT INTO MESSAGE(senderId, receiverId, contents, sendTime, deleteStatus, status)
+            #VALUES('%s', '%s', '%s', '%s', '%d', '%s')" % (sender, receiver, datetime.now(), msg, 0, 0))
+    #
+
+def user_exist(db_conn, uid):
+    cur = db_conn.cursor()
+
+    try:
+        cur.execute("SELECT userid FROM USR WHERE NAME ='%s'" % uid)
+    except psycopg2.DatabaseError as e:
+        return False
+
+    print(cur.fetchone()[0] == uid)
+    return cur.fetchone()[0] == uid
 
 
 def get_sent_messages(db_conn, uname):
@@ -51,7 +73,7 @@ def get_received_messages(db_conn, uname):
     except psycopg2.DatabaseError as e:
         print(e)
         return True
-     
+
     for row in cur.fetchall():
         if str(row[5]) in "01":
             print_message(row)
@@ -75,7 +97,7 @@ def get_drafts(db_conn, uname):
     return True
 
 def delete_message_sender(db_conn, uname, mid):
-    
+
     cur = db_conn.cursor()
     try:
         cur.execute("SELECT * FROM MESSAGE WHERE msgid='%s'" % mid)
@@ -91,7 +113,7 @@ def delete_message_rec(db_conn, uname, mid):
     try:
         cur.execute("SELECT * FROM MESSAGE WHERE msgid='%s'" % mid)
         row = cur.fetchone()
-        new_delete_status = int(row[5]) | 2 
+        new_delete_status = int(row[5]) | 2
         cur.execute("UPDATE MESSAGE SET deletestatus = '%s' WHERE receiverid='%s' AND msgid=%s" % (new_delete_status, uname.username, mid))
         db_conn.commit()
     except psycopg2.DatabaseError as e:
@@ -117,10 +139,12 @@ def option_handler(option, db_conn, uname):
             return get_received_messages(db_conn, uname)
         elif mesg_type == '3':
             return get_drafts(db_conn, uname)
-        
+        elif mesg_type == '4':
+            return send_message(db_conn, uname)
+
 
     elif option == '3':
-        return search(db_conn) 
+        return search(db_conn)
     elif option == '4':
         print('\nPlease reauthenticate')
         username = input('Username: ')
@@ -201,7 +225,7 @@ def login_handler(option, db_conn, uname):
 
         while not date_format_check(dob):
             dob = input('Date of birth (yyyy/mm/dd): ')
-        return register(username, password, name, dob, db_conn) 
+        return register(username, password, name, dob, db_conn)
     return False
 
 
