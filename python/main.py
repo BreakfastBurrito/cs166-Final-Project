@@ -17,20 +17,21 @@ def login(username, password, db_conn):
     try:
         cur.execute("SELECT USERID, PASSWORD FROM USR WHERE USERID='%s' AND PASSWORD='%s'" % (username, password))
     except psycopg2.DatabaseError as e:
-        print('\nIncorrect username or password\n')
         return False
-    rows = cur.fetchall()
-    return rows[0] == (username, password) 
+    row = cur.fetchone()
+    return row == (username, password) 
 
-    
 
 def login_handler(option, db_conn):
     if option == "1":
         username = input('Username: ')
         password = input('Password: ')
-        return login(username, password, db_conn), False
+        if login(username, password, db_conn):
+            return True, False
+        else:
+            print('\nIncorrect username or password\n')
     elif option == "2":
-        print('register')
+        print('')
     elif option == "3":
         return False, True
     return False, False
@@ -60,7 +61,7 @@ def main():
 
             if valid_option(option, "123"):
                 logged_in, exit = login_handler(option, db_conn)
-
+            
         elif logged_in:
             print('8. Logout')
             print('9. Exit')
