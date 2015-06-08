@@ -1,4 +1,5 @@
 import psycopg2
+import getpass
 from user import *
 from helper import *
 
@@ -398,16 +399,20 @@ def option_handler(option, db_conn, uname):
     elif option == '3':
         display_menu('change')
         #username = input('Username: ')
-        password = input('Password: ')
+        password = getpass.getpass()
         reauth_success = login(uname.username, password, db_conn)
         if reauth_success:
-            new_password = input('New Password: ')
-            new_password2 = input('Renter new password: ')
+            print("\nEnter new password")
+            new_password = getpass.getpass()
+            print("\nEnter new password again")
+            new_password2 = getpass.getpass()
             while not pass_check(new_password, new_password2):
-                print("Passwords do not match")
-                new_password = input('New Password: ')
-                new_password2 = input('Renter new password: ')
-            return change_password(username, new_password, db_conn)
+                print("\nPasswords do not match")
+                print("\nEnter new password")
+                new_password = getpass.getpass()
+                print("\nEnter new password again")
+                new_password2 = getpass.getpass()
+            return change_password(uname.username, new_password, db_conn)
         else:
             print("\nReauthentication failed!")
             return True
@@ -481,7 +486,7 @@ def login_handler(option, db_conn, uname):
     if option == "1":
         print()
         username = input('Username: ')
-        password = input('Password: ')
+        password = getpass.getpass()
         if login(username, password, db_conn):
             uname.username = username
             return True
@@ -491,13 +496,13 @@ def login_handler(option, db_conn, uname):
     elif option == "2":
         display_menu('registration')
         username  = input('Username: ')
-        password  = input('Password: ')
-        password2 = input('Renter Password: ')
+        password = getpass.getpass()
+        password2 = getpass.getpass()
 
         while not pass_check(password, password2):
             print("Passwords do not match")
-            password = input('Password: ')
-            password2 = input('Renter Password: ')
+            password = getpass.getpass()
+            password2 = getpass.getpass()
 
         email = input('Email: ')
         name = input('Full Name: ')
