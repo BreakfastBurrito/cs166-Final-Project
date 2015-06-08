@@ -3,18 +3,33 @@ from user import *
 from helper import *
 
 def search(db_conn):
-    search_name = input('\nSearch: ')
-    print("")
-    cur = db_conn.cursor()
+    again = True
+    while again:
+        again = False
+        display_menu('search')
+        search_name = input('\nSearch: ')
+        print("")
+        cur = db_conn.cursor()
 
-    try:
-        cur.execute("SELECT NAME FROM USR WHERE NAME LIKE '%s%%' LIMIT 10" % search_name)
-    except psycopg2.DatabaseError as e:
-        return True
+        try:
+            cur.execute("SELECT NAME FROM USR WHERE NAME LIKE '%s%%' LIMIT 10" % search_name)
+        except psycopg2.DatabaseError as e:
+            return True
 
-    for row in cur.fetchall():
-        print(row[0])
-    print("\n")
+        people = cur.fetchall()
+
+        if len(people) > 0:
+            for row in people:
+                print(row[0])
+            print("\n")
+        else:
+            print("Sorry, %s not found" % search_name)
+
+        choice = input("\nWould you like to search again? (y/n): ")
+
+        if str.lower(choice) == 'y':
+            again = True
+
     return True
 
 def print_message(mesg):
@@ -89,7 +104,7 @@ def get_sent_messages(db_conn, uname):
         if str(row[5]) in "02":
             print_message(row)
     option = input("Delete any messages? y/n")
-    if option == 'y':
+    if str.lower(option) == 'y':
         delete_message_sender(db_conn, uname, input("Message ID: "))
     return True
 
@@ -106,7 +121,7 @@ def get_received_messages(db_conn, uname):
             print_message(row)
 
     option = input("Delete any messages? y/n: ")
-    if option == 'y':
+    if str.lower(option) == 'y':
         delete_message_rec(db_conn, uname, input("Message ID: "))
     return True
 
@@ -336,9 +351,7 @@ def process_requests(db_conn, uname):
             pass
 
 def view_friend_requests(db_conn, uname):
-    print("\n*************************************************")
-    print("*\t\tPending requests\t\t*")
-    print("*************************************************\n")
+    display_menu('view_requests')
     cur = db_conn.cursor()
     try:
         cur.execute("SELECT * FROM CONNECTION_USR  WHERE connectionid='%s' AND status='Request'" % (uname))
@@ -383,10 +396,7 @@ def option_handler(option, db_conn, uname):
     elif option == '2':
         return search(db_conn)
     elif option == '3':
-        print("\n*****************************************")
-        print("*\t\tChange Password\t\t*")
-        print("*****************************************\n")
-        print('\nPlease reauthenticate')
+        display_menu('change')
         #username = input('Username: ')
         password = input('Password: ')
         reauth_success = login(uname.username, password, db_conn)
@@ -445,6 +455,28 @@ def register(username, password, name, dob, db_conn):
         return False
     return False
 
+def display_menu(prompt_type):
+    if prompt_type == 'registration':
+        print("\n*************************************************")
+        print("*\t\tUser Registration\t\t*")
+        print("*************************************************\n")
+    elif prompt_type == 'login':
+            print("\n*****************************************")
+            print("*\t\tLogin Menu\t\t*")
+            print("*****************************************\n")
+            print('1. Login')
+            print('2. Register')
+            print('3. Exit')
+    elif prompt_type == 'change':
+        print("\n*****************************************")
+        print("*\t\tChange Password\t\t*")
+        print("*****************************************\n")
+        print('\nPlease reauthenticate')
+    elif prompt_type == 'view_requests':
+        print("\n*************************************************")
+        print("*\t\tPending requests\t\t*")
+        print("*************************************************\n")
+
 def login_handler(option, db_conn, uname):
     if option == "1":
         print()
@@ -457,6 +489,7 @@ def login_handler(option, db_conn, uname):
             print('\nIncorrect username or password\n')
 
     elif option == "2":
+        display_menu('registration')
         username  = input('Username: ')
         password  = input('Password: ')
         password2 = input('Renter Password: ')
@@ -497,12 +530,7 @@ def main():
 
     while not exit:
         if not logged_in:
-            print("\n*****************************************")
-            print("*\t\tLogin Menu\t\t*")
-            print("*****************************************\n")
-            print('1. Login')
-            print('2. Register')
-            print('3. Exit')
+            display_menu('login')
             option = input('Please choose an option: ')
 
             if option == "3":
