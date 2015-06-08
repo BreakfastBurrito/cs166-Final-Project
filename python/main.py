@@ -167,7 +167,7 @@ def show_profile(db_conn, uname):
         print("Name: %s" % user_data[3])
         print("Email: %s" % user_data[2])
         print("DOB: %s" % user_data[4])
-            
+
         print("Work exp")
         if work_expr != None:
             for row in work_expr:
@@ -196,7 +196,7 @@ def show_friends(db_conn, uname):
     except psycopg2.DatabaseError as e:
         print(e)
         return True
-    print("\n") 
+    print("\n")
     for row in cur.fetchall():
         for item in row:
             print(item)
@@ -213,6 +213,67 @@ def show_friends(db_conn, uname):
             send_message(db_conn, uname)
     return True
 
+def get_friend_list(db_conn, uname):
+    cur = db_conn.cursor()
+    try:
+        cur.execute("SELECT connectionid FROM CONNECTION_USR WHERE userid='%s' AND status != 'Reject' AND STATUS != 'Request'" % uname)
+    except psycopg2.DatabaseError as e:
+        print(e)
+        return True
+
+    friend_list = cur.fetchall()
+
+    if friend_list is None:
+        return set()
+    else:
+        friend_set = set()
+        for f in friend_list:
+            friend_set.add(f[0])
+        return friend_set
+
+def request_friend(db_conn, uname):
+    friend_opts = set()
+    new_friend = input("Request connection with: ")
+
+    # This is a set
+    friend_lvl0 = get_friend_list(db_conn, uname)
+    #friend_opts =friend_opts | friend_lvl0
+
+    # First level friends of friends
+    if len(friend_lvl0) > 0:
+        friend_lvl1 = set()
+        friend_lvl2 = set()
+        friend_lvl3 = set()
+
+        #  level 1 friends
+        for f in friend_lvl0:
+            friend_lvl1 = friend_lvl1 | get_friend_list(db_conn, f)
+        friend_opts = friend_opts | friend_lvl1
+
+        # level 2 friends
+        for f in friend_lvl1:
+            if f not in friend_opts:
+                friend_lvl2 = friend_lvl2 | get_friend_list(db_conn, f)
+        friend_opts = friend_opts | friend_lvl2
+
+        # level 3 friends
+        for f in friend_lvl2:
+            if f not in friend_opts:
+                friend_lvl3 = friend_lvl3 | get_friend_list(db_conn, f)
+        friend_opts = friend_opts | friend_lvl3
+
+    if new_friend in friend_opts:
+        cur = db_conn.cursor()
+        try:
+            cur.execute("INSERT INTO CONNECTION_USR VALUES ('%s', '%s', 'Request')" % (uname, new_friend))
+            cur.commit()
+        except psycopg2.DatabaseError as e:
+            print(e)
+            return True
+        print("Friend request sent to %s." % new_friend)
+
+
+    return True
 
 def option_handler(option, db_conn, uname):
     # Change password
@@ -255,6 +316,8 @@ def option_handler(option, db_conn, uname):
             return False
     elif option == '5':
         return show_friends(db_conn, uname.username)
+    elif option == '6':
+        return request_friend(db_conn, uname.username)
     elif option == '8':
         return False
 
@@ -357,13 +420,14 @@ def main():
             print('3. Search for people')
             print('4. Change password')
             print('5. Show friends')
+            print('6. Request Friend')
             print('8. Logout')
             print('9. Exit')
             option = input('Please choose an option: ')
 
             if option == '9':
                 exit = True
-            elif valid_option(option, "13485"):
+            elif valid_option(option, "134568"):
                 logged_in = option_handler(option, db_conn, username)
 
 if __name__ == "__main__":
