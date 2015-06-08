@@ -7,8 +7,10 @@ def valid_option(option, options):
     return False
 
 def option_handler(option):
-    if option == '1':
-        return True
+    if option == '8':
+        return False, False 
+    elif option == '9':
+        return True, True
 
 def login(username, password, db_conn):
     cur = db_conn.cursor()
@@ -18,7 +20,6 @@ def login(username, password, db_conn):
         print('\nIncorrect username or password\n')
         return False
     rows = cur.fetchall()
-    print(rows[0] == (username,password))
     return rows[0] == (username, password) 
 
     
@@ -39,10 +40,10 @@ def main():
     # Initialize Db
     try:
         db_conn = psycopg2.connect(
-                               host     = '',
-                               user     = '',
-                               database = '',
-                               password = '',
+                               host     = 'breakfastburrito.io',
+                               user     = 'db',
+                               database = 'db',
+                               password = 'dbuser',
                                )
     except psycopg2.DatabaseError as e:
         raise e
@@ -61,11 +62,12 @@ def main():
                 logged_in, exit = login_handler(option, db_conn)
 
         elif logged_in:
-            print('1. Exit')
+            print('8. Logout')
+            print('9. Exit')
             option = input('Please choose an option: ')
 
-            if valid_option(option, "1"):
-                exit = option_handler(option)
+            if valid_option(option, "89"):
+                exit, logged_in = option_handler(option)
 
 
 if __name__ == "__main__":
