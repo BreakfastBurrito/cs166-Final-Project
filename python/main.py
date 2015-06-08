@@ -23,10 +23,11 @@ def valid_option(option, options):
 
 def search(db_conn):
     search_name = input('\nSearch: ')
+    print("")
     cur = db_conn.cursor()
 
     try:
-        cur.execute("SELECT NAME FROM USR WHERE NAME LIKE '%s%%'" % search_name)
+        cur.execute("SELECT NAME FROM USR WHERE NAME LIKE '%s%%' LIMIT 10" % search_name)
     except psycopg2.DatabaseError as e:
         return True, False
     
