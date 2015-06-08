@@ -1,6 +1,19 @@
 from datetime import datetime
 import psycopg2
 
+def pass_check(pass1,pass2):
+    return pass1 == pass2
+
+def name_space_check(name):
+    return " " in name
+
+def date_format_check(d):
+    try:
+        return datetime.strptime(d, '%Y/%m/%d')
+    except ValueError:
+        print("Incorrect dateformat: ")
+        return False
+
 
 def valid_option(option, options):
     if option in options:
@@ -15,7 +28,6 @@ def search(db_conn):
     try:
         cur.execute("SELECT NAME FROM USR WHERE NAME LIKE '%s%%'" % search_name)
     except psycopg2.DatabaseError as e:
-        print(e)
         return True, False
     
     for row in cur.fetchall():
@@ -40,13 +52,11 @@ def option_handler(option, db_conn):
                 print("Passwords do not match")
                 new_password = input('New Password: ')
                 new_password2 = input('Renter new password: ')
-            return change_password(username, new_password, db_conn), False
+            return change_password(username, new_password, db_conn)
         else:
-            return False, False
+            return False
     elif option == '8':
-        return False, False
-    elif option == '9':
-        return True, True
+        return False
 
 def login(username, password, db_conn):
     cur = db_conn.cursor()
@@ -65,23 +75,9 @@ def change_password(username, password, db_conn):
         cur.execute("UPDATE USR SET password='%s' WHERE USERID='%s'" % (password, username))
         db_conn.commit()
     except psycopg2.DatabaseError as e:
-        print("hello?")
         return False
 
     return True
-
-def pass_check(pass1,pass2):
-    return pass1 == pass2
-
-def name_space_check(name):
-    return " " in name
-
-def date_format_check(d):
-    try:
-        return datetime.strptime(d, '%Y/%m/%d')
-    except ValueError:
-        print("Incorrect dateformat: ")
-        return False
 
 
 def register(username, password, name, dob, db_conn):
@@ -99,7 +95,7 @@ def login_handler(option, db_conn):
         username = input('Username: ')
         password = input('Password: ')
         if login(username, password, db_conn):
-            return True, False
+            return True
         else:
             print('\nIncorrect username or password\n')
 
@@ -123,11 +119,9 @@ def login_handler(option, db_conn):
 
         while not date_format_check(dob):
             dob = input('Date of birth (yyyy/mm/dd): ')
-        return register(username, password, name, dob, db_conn), False
+        return register(username, password, name, dob, db_conn) 
 
-    elif option == "3":
-        return False, True
-    return False, False
+    return False
 
 
 def main():
@@ -152,8 +146,10 @@ def main():
             print('3. Exit')
             option = input('Please choose an option: ')
 
-            if valid_option(option, "123"):
-                logged_in, exit = login_handler(option, db_conn)
+            if option == "3":
+                exit = True
+            elif valid_option(option, "12"):
+                logged_in = login_handler(option, db_conn)
 
         elif logged_in:
             print('3. Search for people')
@@ -162,8 +158,10 @@ def main():
             print('9. Exit')
             option = input('Please choose an option: ')
 
-            if valid_option(option, "3489"):
-                logged_in, exit = option_handler(option, db_conn)
+            if option == '9':
+                exit = True
+            elif valid_option(option, "348"):
+                logged_in = option_handler(option, db_conn)
 
 if __name__ == "__main__":
     main()
