@@ -31,7 +31,7 @@ CREATE TABLE EDUCATIONAL_DETAILS(
 	PRIMARY KEY(userId,major,degree));
 
 CREATE TABLE MESSAGE(
-	msgId UNIQUE NOT NULL,
+	msgId integer UNIQUE NOT NULL,
 	senderId char(32) NOT NULL,
 	receiverId char(32) NOT NULL,
 	contents TEXT NOT NULL,
