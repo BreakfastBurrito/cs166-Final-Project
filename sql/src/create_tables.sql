@@ -83,8 +83,7 @@ COPY MESSAGE(
   sendTime,
   deleteStatus,
   status)
-FROM '/home/antoine/cs166-Final-Project/data/message.csv'
-WITH DELIMITER ',';
+FROM '/home/antoine/cs166-Final-Project/data/message.tsv';
 
 COPY CONNECTION_USR(
   userId,
