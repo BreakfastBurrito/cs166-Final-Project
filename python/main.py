@@ -162,11 +162,12 @@ def show_profile(db_conn, uname):
             print(e)
             return True
 
+        print("***** Basic Information *****")
         print("Name: %s" % user_data[3])
         print("Email: %s" % user_data[2])
         print("DOB: %s" % user_data[4])
 
-        print("Work exp")
+        print("***** Work Experience *****")
         if work_expr != None:
             for row in work_expr:
                 print("Company: %s" % row[1])
@@ -174,6 +175,8 @@ def show_profile(db_conn, uname):
                 print("Location: %s" % row[3])
                 print("Startdate: %s" % row[4])
                 print("Enddate: %s\n" % row[5])
+        else:
+            print ("N/A")
 
         print("\nEducation: \n")
         if educ_details!= None:
@@ -183,32 +186,51 @@ def show_profile(db_conn, uname):
                 print("Degree: %s" % row[3])
                 print("Startdate: %s" % row[4])
                 print("Enddate: %s" % row[5])
+        else:
+            print ("N/A")
 
-        return show_friends(db_conn, uname)
+        return show_friends(db_conn, uname, True)
 
 
-def show_friends(db_conn, uname):
+def show_friends(db_conn, uname, from_profile_print):
+    print("****** Friends ******")
+
     cur = db_conn.cursor()
     try:
         cur.execute("SELECT connectionid FROM CONNECTION_USR WHERE userid='%s' AND status != 'Reject' AND STATUS != 'Request'" % uname)
     except psycopg2.DatabaseError as e:
         print(e)
         return True
-    print("\n")
-    for row in cur.fetchall():
-        for item in row:
-            print(item)
-    print("\n")
 
-    if cur.fetchall() != None:
-        print("1. View profile")
-        print("2. Send message")
-        option = input('Select option: ')
-        if option == '1':
-            option = input('Select userid from above: ')
-            show_profile(db_conn, option)
-        elif option == '2':
-            send_message(db_conn, uname)
+    friends = cur.fetchall()
+    if len(friends) > 0:
+        for row in friends:
+            for item in row:
+                print(item)
+    if not from_profile_print:
+        print()
+        print("****** Friend Options ******")
+        print()
+        again = True
+        while again:
+            again = False
+            print()
+            option = input("Would you like to view a profile or send a message? (y/n): ")
+            if str.lower(option) == 'y':
+                print()
+                print("1. View profile")
+                print("2. Send message")
+                option = input('Select option: ')
+                if option == '1':
+                    again = True
+                    option = input('Select userid from above: ')
+                    show_profile(db_conn, option)
+                elif option == '2':
+                    again = True
+                    send_message(db_conn, uname)
+    else:
+        print("\nSorry, no friends :(")
+
     return True
 
 def get_friend_list(db_conn, uname):
@@ -230,8 +252,12 @@ def get_friend_list(db_conn, uname):
         return friend_set
 
 def request_friend(db_conn, uname):
+    print("\n*************************************************")
+    print("*\t\tSend Friend Request\t\t*")
+    print("*************************************************\n")
+
     friend_opts = set()
-    new_friend = input("Request connection with: ")
+    new_friend = input("Send request to: ")
 
     # This is a set
     friend_lvl0 = get_friend_list(db_conn, uname)
@@ -268,6 +294,9 @@ def request_friend(db_conn, uname):
             print(e)
             return True
         print("Friend request sent to %s." % new_friend)
+    else:
+        print()
+        print("Friend request failed")
 
 def accept_request(db_conn, receiver, sender):
     cur = db_conn.cursor()
@@ -326,14 +355,17 @@ def view_friend_requests(db_conn, uname):
 
     return True
 
+def messaging_menu():
+    print()
+    print('1. View Sent')
+    print('2. View Received')
+    print('3. View drafts')
+    print('4. Send Message')
+
 def option_handler(option, db_conn, uname):
-    # Change password
 
     if option == '1':
-        print('1. View Sent')
-        print('2. View Received')
-        print('3. View drafts')
-        print('4. Send Message')
+        messaging_menu()
         mesg_type = input('Select option: ')
         print('\n')
         while not valid_option(mesg_type, "1234"):
@@ -351,10 +383,13 @@ def option_handler(option, db_conn, uname):
     elif option == '2':
         return search(db_conn)
     elif option == '3':
+        print("\n*****************************************")
+        print("*\t\tChange Password\t\t*")
+        print("*****************************************\n")
         print('\nPlease reauthenticate')
-        username = input('Username: ')
+        #username = input('Username: ')
         password = input('Password: ')
-        reauth_success = login(username, password, db_conn)
+        reauth_success = login(uname.username, password, db_conn)
         if reauth_success:
             new_password = input('New Password: ')
             new_password2 = input('Renter new password: ')
@@ -364,14 +399,17 @@ def option_handler(option, db_conn, uname):
                 new_password2 = input('Renter new password: ')
             return change_password(username, new_password, db_conn)
         else:
-            return False
+            print("\nReauthentication failed!")
+            return True
     elif option == '4':
-        return show_friends(db_conn, uname.username)
+        return show_friends(db_conn, uname.username, False)
     elif option == '5':
-        return request_friend(db_conn, uname.username)
+        request_friend(db_conn, uname.username)
+        return True
     elif option == '6':
         return view_friend_requests(db_conn, uname.username)
-    elif option == '8':
+    elif option == '7':
+        uname.username = ""
         return False
 
 def login(username, password, db_conn):
@@ -390,6 +428,7 @@ def change_password(username, password, db_conn):
     try:
         cur.execute("UPDATE USR SET password='%s' WHERE USERID='%s'" % (password, username))
         db_conn.commit()
+        print("\nPassword change successful!")
     except psycopg2.DatabaseError as e:
         return False
 
@@ -408,6 +447,7 @@ def register(username, password, name, dob, db_conn):
 
 def login_handler(option, db_conn, uname):
     if option == "1":
+        print()
         username = input('Username: ')
         password = input('Password: ')
         if login(username, password, db_conn):
@@ -471,19 +511,22 @@ def main():
                 logged_in = login_handler(option, db_conn, username)
 
         elif logged_in:
+            print("\n*******************************************")
+            print("*\t\tAction Menu\t\t*")
+            print("*******************************************\n")
             print('1. Messaging Options')
             print('2. Search for people')
             print('3. Change password')
             print('4. Show friends')
-            print('5. Request Friend')
+            print('5. Send Friend Request')
             print('6. View Friend Requests')
-            print('8. Logout')
-            print('9. Exit')
+            print('7. Logout')
+            print('8. Exit')
             option = input('Please choose an option: ')
 
-            if option == '9':
+            if option == '8':
                 exit = True
-            elif valid_option(option, "134568"):
+            elif valid_option(option, "1234567"):
                 logged_in = option_handler(option, db_conn, username)
 
 if __name__ == "__main__":
