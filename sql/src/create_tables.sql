@@ -53,7 +53,7 @@ COPY USR(
   email,
   name,
   dateOfBirth)
-FROM 'home/antoine/cs166-Final-Project//data/usr.csv'
+FROM '//home/antoine/cs166-Final-Project//data/usr.csv'
 WITH DELIMITER ',';
 
 COPY  WORK_EXPR(
@@ -63,7 +63,7 @@ COPY  WORK_EXPR(
 	location,
 	startDate,
 	endDate)
-FROM 'home/antoine/cs166-Final-Project/data/work_ex.csv'
+FROM '/home/antoine/cs166-Final-Project/data/work_ex.csv'
 WITH DELIMITER ',';
 
 COPY EDUCATIONAL_DETAILS(
@@ -74,7 +74,7 @@ COPY EDUCATIONAL_DETAILS(
   degree,
   startdate,
   enddate)
-FROM 'home/antoine/cs166-Final-Project/data/edu_det.csv'
+FROM '/home/antoine/cs166-Final-Project/data/edu_det.csv'
 WITH DELIMITER ',';
 
 COPY MESSAGE(
@@ -85,12 +85,12 @@ COPY MESSAGE(
   sentTime
   deleteStatus,
   status)
-FROM 'home/antoine/cs166-Final-Project/data/message.csv'
+FROM '/home/antoine/cs166-Final-Project/data/message.csv'
 WITH DELIMITER ',';
 
 COPY CONNECTION_USR(
   userId,
   connectionId,
   status)
-FROM 'home/antoine/cs166-Final-Project/data/connection.csv'
+FROM '/home/antoine/cs166-Final-Project/data/connection.csv'
 WITH DELIMITER ',';
