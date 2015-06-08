@@ -3,14 +3,32 @@ import psycopg2
 
 
 def valid_option(option, options):
-    if str(option) in options:
+    if option in options:
         return True
     print('\nInvalid option\n')
     return False
 
+def search(db_conn):
+    search_name = input('\nSearch: ')
+    cur = db_conn.cursor()
+
+    try:
+        cur.execute("SELECT NAME FROM USR WHERE NAME LIKE '%s%%'" % search_name)
+    except psycopg2.DatabaseError as e:
+        print(e)
+        return True, False
+    
+    for row in cur.fetchall():
+        print(row[0])
+    print("\n")
+    return True, False
+    
+
 def option_handler(option, db_conn):
     # Change password
-    if option == '4':
+    if option == '3':
+        return search(db_conn) 
+    elif option == '4':
         print('\nPlease reauthenticate')
         username = input('Username: ')
         password = input('Password: ')
@@ -138,12 +156,13 @@ def main():
                 logged_in, exit = login_handler(option, db_conn)
 
         elif logged_in:
+            print('3. Search for people')
             print('4. Change password')
             print('8. Logout')
             print('9. Exit')
             option = input('Please choose an option: ')
 
-            if valid_option(option, "489"):
+            if valid_option(option, "3489"):
                 logged_in, exit = option_handler(option, db_conn)
 
 if __name__ == "__main__":
