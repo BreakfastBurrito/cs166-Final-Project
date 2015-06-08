@@ -77,7 +77,6 @@ def user_exist(db_conn, uid):
 
     return cur.fetchone() != None
 
-
 def get_sent_messages(db_conn, uname):
     cur = db_conn.cursor()
     try:
@@ -125,7 +124,6 @@ def get_drafts(db_conn, uname):
     return True
 
 def delete_message_sender(db_conn, uname, mid):
-
     cur = db_conn.cursor()
     try:
         cur.execute("SELECT * FROM MESSAGE WHERE msgid='%s'" % mid)
@@ -237,7 +235,6 @@ def request_friend(db_conn, uname):
 
     # This is a set
     friend_lvl0 = get_friend_list(db_conn, uname)
-    #friend_opts =friend_opts | friend_lvl0
 
     # First level friends of friends
     if len(friend_lvl0) > 0:
@@ -272,6 +269,60 @@ def request_friend(db_conn, uname):
             return True
         print("Friend request sent to %s." % new_friend)
 
+def accept_request(db_conn, receiver, sender):
+    cur = db_conn.cursor()
+    try:
+        cur.execute("UPDATE CONNECTION_USR SET status='Accept' WHERE userid='%s' AND connectionid='%s'" % (sender, receiver))
+        db_conn.commit()
+    except psycopg2.DatabaseError as e:
+        return False
+
+def reject_request(db_conn, receiver, sender):
+    cur = db_conn.cursor()
+    try:
+        cur.execute("UPDATE CONNECTION_USR SET status='Reject' WHERE userid='%s' AND connectionid='%s'" % (sender, receiver))
+        db_conn.commit()
+    except psycopg2.DatabaseError as e:
+        return False
+
+def process_requests(db_conn, uname):
+    choice = input("\nWould you like to accept/deny any requests? (y/n): ")
+
+    if str.lower(choice) == 'y':
+        print("1. Accept")
+        print("2. Reject")
+        print("3. Cancel")
+        choice = input("Select option: ")
+
+        while not valid_option(choice, '123'):
+            choice = input("Select option: ")
+
+        if choice == '1':
+            sender = input("Request to accept: ")
+            accept_request(db_conn, uname, sender)
+        elif choice == '2':
+            sender = input("Request to reject: ")
+            reject_request(db_conn, uname, sender)
+        else:
+            pass
+
+def view_friend_requests(db_conn, uname):
+    print("\n*************************************************")
+    print("*\t\tPending requests\t\t*")
+    print("*************************************************\n")
+    cur = db_conn.cursor()
+    try:
+        cur.execute("SELECT * FROM CONNECTION_USR  WHERE connectionid='%s' AND status='Request'" % (uname))
+    except psycopg2.DatabaseError as e:
+        print(e)
+        return True
+
+    requests = cur.fetchall()
+    for request in requests:
+        print("From: '%s'" % request[0])
+
+    if len(requests) > 0:
+        process_requests(db_conn, uname)
 
     return True
 
@@ -318,6 +369,8 @@ def option_handler(option, db_conn, uname):
         return show_friends(db_conn, uname.username)
     elif option == '5':
         return request_friend(db_conn, uname.username)
+    elif option == '6':
+        return view_friend_requests(db_conn, uname.username)
     elif option == '8':
         return False
 
@@ -386,7 +439,6 @@ def login_handler(option, db_conn, uname):
         return register(username, password, name, dob, db_conn)
     return False
 
-
 def main():
     # Initialize Db
     try:
@@ -405,6 +457,9 @@ def main():
 
     while not exit:
         if not logged_in:
+            print("\n*****************************************")
+            print("*\t\tLogin Menu\t\t*")
+            print("*****************************************\n")
             print('1. Login')
             print('2. Register')
             print('3. Exit')
@@ -416,7 +471,7 @@ def main():
                 logged_in = login_handler(option, db_conn, username)
 
         elif logged_in:
-            print('1. Messages')
+            print('1. Messaging Options')
             print('2. Search for people')
             print('3. Change password')
             print('4. Show friends')
