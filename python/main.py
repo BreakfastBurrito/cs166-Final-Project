@@ -297,9 +297,9 @@ def option_handler(option, db_conn, uname):
         elif mesg_type == '4':
             return send_message(db_conn, uname.username)
 
-    elif option == '3':
+    elif option == '2':
         return search(db_conn)
-    elif option == '4':
+    elif option == '3':
         print('\nPlease reauthenticate')
         username = input('Username: ')
         password = input('Password: ')
@@ -314,9 +314,9 @@ def option_handler(option, db_conn, uname):
             return change_password(username, new_password, db_conn)
         else:
             return False
-    elif option == '5':
+    elif option == '4':
         return show_friends(db_conn, uname.username)
-    elif option == '6':
+    elif option == '5':
         return request_friend(db_conn, uname.username)
     elif option == '8':
         return False
@@ -417,10 +417,11 @@ def main():
 
         elif logged_in:
             print('1. Messages')
-            print('3. Search for people')
-            print('4. Change password')
-            print('5. Show friends')
-            print('6. Request Friend')
+            print('2. Search for people')
+            print('3. Change password')
+            print('4. Show friends')
+            print('5. Request Friend')
+            print('6. View Friend Requests')
             print('8. Logout')
             print('9. Exit')
             option = input('Please choose an option: ')
