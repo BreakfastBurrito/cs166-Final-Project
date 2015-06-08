@@ -17,6 +17,16 @@ def search(db_conn):
     print("\n")
     return True
     
+def print_message(mesg):
+    print("Message ID: %s" % mesg[0])
+    print("Sender: %s" % mesg[1])
+    print("Receiver: %s" % mesg[2])
+    print("Timestamp: %s" % mesg[4])
+    print("Status: %s" % mesg[6])
+    print("Contents:")
+    print(mesg[3])
+    print("\n")
+
 
 def get_sent_messages(db_conn, uname):
     cur = db_conn.cursor()
@@ -27,23 +37,28 @@ def get_sent_messages(db_conn, uname):
         return True
 
     for row in cur.fetchall():
-        for item in row:
-            print(item)
-        print('\n')
+        if str(row[5]) in "02":
+            print_message(row)
+    option = input("Delete any messages? y/n")
+    if option == 'y':
+        delete_message_sender(input("Message ID: "))
     return True
 
 def get_received_messages(db_conn, uname):
     cur = db_conn.cursor()
     try:
-        cur.execute("SELECT * FROM MESSAGE WHERE receiverid='%s' AND status !='Draft' OR status != 'Failed to Deliver'" % uname.username)
+        cur.execute("SELECT * FROM MESSAGE WHERE receiverid='%s' AND status !='Draft' AND status != 'Failed to Deliver'" % uname.username)
     except psycopg2.DatabaseError as e:
         print(e)
         return True
-
+     
     for row in cur.fetchall():
-        for item in row:
-            print(item)
-        print("\n")
+        if str(row[5]) in "01":
+            print_message(row)
+
+    option = input("Delete any messages? y/n: ")
+    if option == 'y':
+        delete_message_rec(db_conn, uname, input("Message ID: "))
     return True
 
 def get_drafts(db_conn, uname):
@@ -55,10 +70,33 @@ def get_drafts(db_conn, uname):
         return True
 
     for row in cur.fetchall():
-        for item in row:
-            print(item)
-        print("\n")
+        if str(row[5]) in "02":
+            print_message(row)
     return True
+
+def delete_message_sender(db_conn, uname, mid):
+    
+    cur = db_conn.cursor()
+    try:
+        cur.execute("SELECT * FROM MESSAGE WHERE msgid='%s'" % mid)
+        row = cur.fetchone()
+        new_delete_status = int(row[5]) | 1
+        cur.execute("UPDATE MESSAGE SET deletestatus = '%s' WHERE senderid='%s' AND msgid=%s" % (new_delete_status, uname.username, mid))
+        db_conn.commit()
+    except psycopg2.DatabaseError as e:
+        return True
+
+def delete_message_rec(db_conn, uname, mid):
+    cur = db_conn.cursor()
+    try:
+        cur.execute("SELECT * FROM MESSAGE WHERE msgid='%s'" % mid)
+        row = cur.fetchone()
+        new_delete_status = int(row[5]) | 2 
+        cur.execute("UPDATE MESSAGE SET deletestatus = '%s' WHERE receiverid='%s' AND msgid=%s" % (new_delete_status, uname.username, mid))
+        db_conn.commit()
+    except psycopg2.DatabaseError as e:
+        return True
+
 
 def option_handler(option, db_conn, uname):
     # Change password
@@ -70,7 +108,7 @@ def option_handler(option, db_conn, uname):
         print('4. Send Message')
         mesg_type = input('Select option: ')
         print('\n')
-        while not valid_option(mesg_type, "12345"):
+        while not valid_option(mesg_type, "1234"):
             mesg_type = input('Select option: ')
             print('\n')
         if mesg_type == '1':
@@ -79,6 +117,7 @@ def option_handler(option, db_conn, uname):
             return get_received_messages(db_conn, uname)
         elif mesg_type == '3':
             return get_drafts(db_conn, uname)
+        
 
     elif option == '3':
         return search(db_conn) 
