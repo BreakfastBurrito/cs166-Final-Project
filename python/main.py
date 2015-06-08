@@ -147,6 +147,72 @@ def delete_message_rec(db_conn, uname, mid):
     except psycopg2.DatabaseError as e:
         return True
 
+def show_profile(db_conn, uname):
+    if user_exist(db_conn, uname):
+        cur = db_conn.cursor()
+        try:
+            cur.execute("SELECT * FROM USR WHERE userid='%s'" % uname)
+            user_data = cur.fetchone()
+
+            cur.execute("SELECT * FROM WORK_EXPR WHERE userid='%s'" % uname)
+            work_expr = cur.fetchall()
+
+            cur.execute("SELECT * FROM EDUCATIONAL_DETAILS WHERE userid='%s'" % uname)
+            educ_details = cur.fetchall()
+
+        except psycopg2.DatabaseError as e:
+            print(e)
+            return True
+
+        print("Name: %s" % user_data[3])
+        print("Email: %s" % user_data[2])
+        print("DOB: %s" % user_data[4])
+            
+        print("Work exp")
+        if work_expr != None:
+            for row in work_expr:
+                print("Company: %s" % row[1])
+                print("Role: %s" %row[2])
+                print("Location: %s" % row[3])
+                print("Startdate: %s" % row[4])
+                print("Enddate: %s\n" % row[5])
+
+        print("\nEducation: \n")
+        if educ_details!= None:
+            for row in educ_details:
+                print("Name: %s" % row[1])
+                print("Major: %s" % row[2])
+                print("Degree: %s" % row[3])
+                print("Startdate: %s" % row[4])
+                print("Enddate: %s" % row[5])
+
+        return show_friends(db_conn, uname)
+
+
+def show_friends(db_conn, uname):
+    cur = db_conn.cursor()
+    try:
+        cur.execute("SELECT connectionid FROM CONNECTION_USR WHERE userid='%s' AND status != 'Reject' AND STATUS != 'Request'" % uname)
+    except psycopg2.DatabaseError as e:
+        print(e)
+        return True
+    print("\n") 
+    for row in cur.fetchall():
+        for item in row:
+            print(item)
+    print("\n")
+
+    if cur.fetchall() != None:
+        print("1. View profile")
+        print("2. Send message")
+        option = input('Select option: ')
+        if option == '1':
+            option = input('Select userid from above: ')
+            show_profile(db_conn, option)
+        elif option == '2':
+            send_message(db_conn, uname)
+    return True
+
 
 def option_handler(option, db_conn, uname):
     # Change password
@@ -170,7 +236,6 @@ def option_handler(option, db_conn, uname):
         elif mesg_type == '4':
             return send_message(db_conn, uname.username)
 
-
     elif option == '3':
         return search(db_conn)
     elif option == '4':
@@ -188,6 +253,8 @@ def option_handler(option, db_conn, uname):
             return change_password(username, new_password, db_conn)
         else:
             return False
+    elif option == '5':
+        return show_friends(db_conn, uname.username)
     elif option == '8':
         return False
 
@@ -289,13 +356,14 @@ def main():
             print('1. Messages')
             print('3. Search for people')
             print('4. Change password')
+            print('5. Show friends')
             print('8. Logout')
             print('9. Exit')
             option = input('Please choose an option: ')
 
             if option == '9':
                 exit = True
-            elif valid_option(option, "1348"):
+            elif valid_option(option, "13485"):
                 logged_in = option_handler(option, db_conn, username)
 
 if __name__ == "__main__":
