@@ -27,27 +27,55 @@ def print_message(mesg):
     print(mesg[3])
     print("\n")
 
+def get_msgid(db_conn):
+    cur = db_conn.cursor()
+    try:
+        cur.execute("SELECT max(msgid) FROM MESSAGE")
+    except psycopg2.DatabaseError as e:
+        print(e)
+        return False
+    row = cur.fetchone()
+    if row != None:
+        return int(row[0])
+    else:
+        return -1
+
 def send_message(db_conn, sender):
     receiver = input("Enter receiverid: ")
     msg = input("Enter your message: ")
+    msgid = get_msgid(db_conn) + 1
 
-    if user_exist(receiver):
-        print('yay')
-        #cur = db_conn.cursor()
-        #cur.execute("INSERT INTO MESSAGE(senderId, receiverId, contents, sendTime, deleteStatus, status)
-            #VALUES('%s', '%s', '%s', '%s', '%d', '%s')" % (sender, receiver, datetime.now(), msg, 0, 0))
-    #
+    if user_exist(db_conn, receiver):
+        delete_status = 0
+        status = 'Sent'
+    else:
+        delete_status = 2
+        status = 'Failed to deliver'
+
+    cur = db_conn.cursor()
+
+    try:
+        print(sender)
+        print(receiver)
+        print(status)
+
+        cur.execute("INSERT INTO MESSAGE(msgid, senderId, receiverId, contents, sendTime, deleteStatus, status) \
+            VALUES('%d', '%s', '%s', '%s', '%s', '%d', '%s')" % (msgid, sender, receiver, msg, datetime.now(), delete_status, status))
+    except psycopg2.DatabaseError as e:
+        print(e)
+        return False
+    return True
 
 def user_exist(db_conn, uid):
     cur = db_conn.cursor()
 
     try:
-        cur.execute("SELECT userid FROM USR WHERE NAME ='%s'" % uid)
+        cur.execute("SELECT userid FROM USR WHERE userId ='%s'" % uid)
     except psycopg2.DatabaseError as e:
+        print(e)
         return False
 
-    print(cur.fetchone()[0] == uid)
-    return cur.fetchone()[0] == uid
+    return cur.fetchone() != None
 
 
 def get_sent_messages(db_conn, uname):
@@ -63,7 +91,7 @@ def get_sent_messages(db_conn, uname):
             print_message(row)
     option = input("Delete any messages? y/n")
     if option == 'y':
-        delete_message_sender(input("Message ID: "))
+        delete_message_sender(db_conn, uname, input("Message ID: "))
     return True
 
 def get_received_messages(db_conn, uname):
@@ -140,7 +168,7 @@ def option_handler(option, db_conn, uname):
         elif mesg_type == '3':
             return get_drafts(db_conn, uname)
         elif mesg_type == '4':
-            return send_message(db_conn, uname)
+            return send_message(db_conn, uname.username)
 
 
     elif option == '3':
@@ -258,7 +286,7 @@ def main():
                 logged_in = login_handler(option, db_conn, username)
 
         elif logged_in:
-            print('1. Show Messages')
+            print('1. Messages')
             print('3. Search for people')
             print('4. Change password')
             print('8. Logout')
