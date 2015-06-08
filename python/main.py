@@ -209,7 +209,7 @@ def show_profile(db_conn, uname):
 
 
 def show_friends(db_conn, uname, from_profile_print):
-    print("****** Friends ******")
+    print("\n****** Friends ******")
 
     cur = db_conn.cursor()
     try:
@@ -223,7 +223,7 @@ def show_friends(db_conn, uname, from_profile_print):
         for row in friends:
             for item in row:
                 print(item)
-    if not from_profile_print:
+    if not from_profile_print and len(friends) > 0:
         print()
         print("****** Friend Options ******")
         print()
