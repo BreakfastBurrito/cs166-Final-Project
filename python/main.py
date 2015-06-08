@@ -40,7 +40,7 @@ def date_format_check(d):
 def register(username, password, name, dob, db_conn):
     cur = db_conn.cursor()
     try:
-        cur.execute("INSERT INTO USR VALUES ('%s', '%s', '%s', '%s')" % (username, password, name, dob))
+        cur.execute("INSERT INTO USR VALUES ('%s', '%s', '%s', '%s', '%s')" % (username, password, email, name, dob))
     except psycopg2.DatabaseError as e:
         print('Error user already exists')
         return False
@@ -114,7 +114,7 @@ def main():
 
             if valid_option(option, "89"):
                 exit, logged_in = option_handler(option)
-
+        db_conn.commit()
 
 if __name__ == "__main__":
     main()
