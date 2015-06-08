@@ -3,18 +3,17 @@ DROP TABLE EDUCATIONAL_DETAILS;
 DROP TABLE MESSAGE;
 DROP TABLE CONNECTION_USR;
 DROP TABLE USR;
-
-
+SET datestyle TO "postgres, MDY";
 CREATE TABLE USR(
-	userId varchar(10) UNIQUE NOT NULL,
-	password varchar(10) NOT NULL,
+	userId varchar(32) UNIQUE NOT NULL,
+	password varchar(32) NOT NULL,
 	email text NOT NULL,
 	name char(50),
 	dateOfBirth date,
 	Primary Key(userId));
 
 CREATE TABLE WORK_EXPR(
-	userId char(10) NOT NULL,
+	userId char(32) NOT NULL,
 	company char(50) NOT NULL,
 	role char(50) NOT NULL,
 	location char(50),
@@ -23,8 +22,8 @@ CREATE TABLE WORK_EXPR(
 	PRIMARY KEY(userId,company,role,startDate));
 
 CREATE TABLE EDUCATIONAL_DETAILS(
-	userId char(10) NOT NULL,
-	instituitionName char(50) NOT NULL,
+	userId char(32) NOT NULL,
+	institutionName char(50) NOT NULL,
 	major char(50) NOT NULL,
 	degree char(50) NOT NULL,
 	startdate date,
@@ -33,17 +32,17 @@ CREATE TABLE EDUCATIONAL_DETAILS(
 
 CREATE TABLE MESSAGE(
 	msgId integer UNIQUE NOT NULL,
-	senderId char(10) NOT NULL,
-	receiverId char(10) NOT NULL,
-	contents char(500) NOT NULL,
+	senderId char(32) NOT NULL,
+	receiverId char(32) NOT NULL,
+	contents TEXT NOT NULL,
 	sendTime timestamp,
 	deleteStatus integer,
 	status char(30) NOT NULL,
 	PRIMARY KEY(msgId));
 
 CREATE TABLE CONNECTION_USR(
-	userId char(10) NOT NULL,
-	connectionId char(10) NOT NULL,
+	userId char(32) NOT NULL,
+	connectionId char(32) NOT NULL,
 	status char(30) NOT NULL,
 	PRIMARY KEY(userId,connectionId));
 
@@ -53,7 +52,7 @@ COPY USR(
   email,
   name,
   dateOfBirth)
-FROM '//home/antoine/cs166-Final-Project//data/usr.csv'
+FROM '/home/antoine/cs166-Final-Project/data/usr.csv'
 WITH DELIMITER ',';
 
 COPY  WORK_EXPR(
@@ -71,7 +70,6 @@ COPY EDUCATIONAL_DETAILS(
   institutionName,
   major,
   degree,
-  degree,
   startdate,
   enddate)
 FROM '/home/antoine/cs166-Final-Project/data/edu_det.csv'
@@ -82,7 +80,7 @@ COPY MESSAGE(
   senderId,
   receiverId,
   contents,
-  sentTime
+  sendTime,
   deleteStatus,
   status)
 FROM '/home/antoine/cs166-Final-Project/data/message.csv'
