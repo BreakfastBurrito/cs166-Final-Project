@@ -53,5 +53,44 @@ COPY USR(
   email,
   name,
   dateOfBirth)
-FROM 'Final_Data.csv'
+FROM 'home/antoine/cs166-Final-Project//data/usr.csv'
+WITH DELIMITER ',';
+
+COPY  WORK_EXPR(
+	userId,
+	company,
+	role,
+	location,
+	startDate,
+	endDate)
+FROM 'home/antoine/cs166-Final-Project/data/work_ex.csv'
+WITH DELIMITER ',';
+
+COPY EDUCATIONAL_DETAILS(
+  userId,
+  institutionName,
+  major,
+  degree,
+  degree,
+  startdate,
+  enddate)
+FROM 'home/antoine/cs166-Final-Project/data/edu_det.csv'
+WITH DELIMITER ',';
+
+COPY MESSAGE(
+  msgId,
+  senderId,
+  receiverId,
+  contents,
+  sentTime
+  deleteStatus,
+  status)
+FROM 'home/antoine/cs166-Final-Project/data/message.csv'
+WITH DELIMITER ',';
+
+COPY CONNECTION_USR(
+  userId,
+  connectionId,
+  status)
+FROM 'home/antoine/cs166-Final-Project/data/connection.csv'
 WITH DELIMITER ',';
