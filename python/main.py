@@ -450,7 +450,7 @@ def change_password(username, password, db_conn):
     return True
 
 
-def register(username, password, name, dob, db_conn):
+def register(username, password, email, name, dob, db_conn):
     cur = db_conn.cursor()
     try:
         cur.execute("INSERT INTO USR VALUES ('%s', '%s', '%s', '%s', '%s')" % (username, password, email, name, dob))
@@ -514,7 +514,7 @@ def login_handler(option, db_conn, uname):
 
         while not date_format_check(dob):
             dob = input('Date of birth (yyyy/mm/dd): ')
-        return register(username, password, name, dob, db_conn)
+        return register(username, password, email, name, dob, db_conn)
     return False
 
 def main():
