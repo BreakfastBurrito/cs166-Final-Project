@@ -1,3 +1,9 @@
+##########################################
+# Kenley Arai
+# Antoine Guerrero
+# Group 20
+##########################################
+
 import psycopg2
 import getpass
 from user import *

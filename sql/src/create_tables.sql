@@ -1,3 +1,9 @@
+/* ---------------------------------------- */
+/* Kenley Arai                              */
+/* Antoine Guerrero                         */
+/* Group 20                                 */
+/* ---------------------------------------- */
+
 DROP TABLE WORK_EXPR;
 DROP TABLE EDUCATIONAL_DETAILS;
 DROP TABLE MESSAGE;
