@@ -13,7 +13,7 @@ def search(db_conn):
         cur = db_conn.cursor()
 
         try:
-            cur.execute("SELECT NAME FROM USR WHERE NAME LIKE '%s%%' LIMIT 10" % search_name)
+            cur.execute("SELECT NAME FROM USR WHERE NAME ILIKE '%s%%' LIMIT 10" % search_name)
         except psycopg2.DatabaseError as e:
             return True
 
